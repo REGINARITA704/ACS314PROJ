@@ -20,7 +20,7 @@ class _SignupScreenState extends State<SignupScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                'assets/Jumia-Logo-2012-500x281.png',
+                'assets/to do list png.webp',
                 width: 200,
                 height: 100,
               ),
