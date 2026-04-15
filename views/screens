@@ -1,0 +1,53 @@
+import 'packages:flutter/material.dart;
+import 'packages :http/http.dart' as http;
+class TodoItem extends StatefulWidget {
+ Var mytask;
+ Task
+
+  @override
+  State<TodoItem> createState() => _TodoItemState();
+  FetchTasks() async{
+    var response = await http.get(Uri.parse("http://localhost/todo_api/get_tasks.php"));
+    if (response.statusCode == 200){
+        Var ServerData = json.decode(response.body);
+        Var ConvertedData = ServerData["data"];
+        for (Var mytask in ConvertedData){
+            mytask.add(task ["name"], task ["description"], task ["due_date"], task ["image"]);
+            
+        }
+        
+        print(response.body);
+    }
+    else{
+        Get.snackbar("Error", "Server error");
+    }
+
+  }
+}
+class _TodoItemState extends State<TodoItem> {
+    const _TodoItemState({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Image.asset(
+          "assets/to do list png.webp",
+          width: 100,
+          height: 100,
+        ),
+    
+        Column(
+          children: const [
+            Text((mytask.[index].image,width: 100, height: 100)
+              
+            
+            ),
+            Text("Category"),
+          ],
+        ),
+        Spacer(),
+        Text("Due Date"),
+      ],
+    );
+  }
+}

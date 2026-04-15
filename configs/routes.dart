@@ -1,12 +1,11 @@
-import 'package:get/get_navigation/src/routes/get_route.dart';
+import 'package:get_x/get_navigation/src/routes/get_route.dart';
 
 import '../views/homescreen.dart';
 import '../views/login.dart';
 import '../views/signup.dart';
-import 'package:get/get.dart';
 
 var routes = [
   GetPage(name: "/", page: () => LoginScreen()),
   GetPage(name: "/signup", page: () => SignupScreen()),
-  GetPage(name: "/homescreen", page: () => Homescreen()),
+  GetPage(name: "/homescreen", page: () => HomeScreen()),
 ];

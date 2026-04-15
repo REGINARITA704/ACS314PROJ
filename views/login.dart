@@ -1,7 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-
-import '../controller/controller.dart';
+import 'package:get_x/get.dart';
+import 'package:http/http.dart' as http;
+import '../controller/logincontroller.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -27,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const SizedBox(height: 40),
               Image.asset('assets/to do list png.webp'),
-              const SizedBox(height: 16),
+              const SizedBox(height: 120),
               const Text(
                 "Login Screen",
                 textAlign: TextAlign.center,
@@ -55,6 +56,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 8),
+              //Obx(
+              //() =>
               TextField(
                 controller: passwordController,
                 obscureText: !passwordVisible,
@@ -73,33 +76,54 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
+              // ),
               const SizedBox(height: 30),
-              GestureDetector(
-                onTap: () {
-                  bool success = loginController.login(
-                    usernameController.text.trim(),
-                    passwordController.text,
+              // Replaced GestureDetector + Container with ElevatedButton for better feedback
+              ElevatedButton(
+                onPressed: () async {
+                  Get.offAllNamed('/homescreen');
+
+                  print(
+                    "Login button pressed",
+                  ); // Debug: Check console for this
+                  usernameController.text.trim();
+                  passwordController.text;
+
+                  final response = await http.get(
+                    Uri.parse(
+                      "http://localhost/todo_api/login.php?email=${usernameController.text.trim()}&password=${passwordController.text}",
+                    ),
                   );
-                  if (success) {
-                    Get.offAndToNamed("/homescreen");
+                  if (response.statusCode == 200) {
+                    var data = jsonDecode(response.body);
+                    if (data['success'] == 1) {
+                      //Get.snackbar("Login Successful", "Welcome back!");
+                      Get.toNamed("/homescreen");
+                    } else {
+                      Get.snackbar("Login Failed", "Invalid credentials.");
+                    }
                   } else {
                     Get.snackbar(
                       "Login Failed",
-                      "Invalid username or password",
+                      "SERVER ERROR: ${response.statusCode}",
                     );
                   }
+
+                  //print(response.body);
                 },
-                child: Container(
-                  height: 50,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: Colors.amber,
+
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                  minimumSize: const Size(double.infinity, 50), // Full width
+                  shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
-                    "Login",
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
+                ),
+                child: const Text(
+                  "Login",
+                  style: TextStyle(
+                    color: Colors.black,
+                  ), // Changed to visible color
                 ),
               ),
               const SizedBox(height: 16),

@@ -2,23 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'dashboard.dart';
 import 'profile.dart';
-import 'calendar.dart';
+import 'calendar_page.dart';
 import 'settings.dart';
 
-class Homescreen extends StatefulWidget {
-  const Homescreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<Homescreen> createState() => _HomescreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomescreenState extends State<Homescreen> {
+class _HomeScreenState extends State<HomeScreen> {
   int _pageIndex = 0;
 
   // These are the 4 parts of your assignment:
   final List<Widget> _pages = [
     const DashboardScreen(), // 1. Tasks
-    const CalendarScreen(),
+    const MovingCalendar(),
     const ProfileScreen(), // 3. Profile
     const SettingsScreen(), // 4. Settings Placeholder
   ];
