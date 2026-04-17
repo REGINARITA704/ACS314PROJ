@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../views/dashboard.dart';
+import 'dart:convert';
 
 class SignupController extends GetxController {
   final usernameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  var isLoading = false.obs;
 
   void signupUser() {
     String name = usernameController.text.trim();
@@ -20,8 +21,9 @@ class SignupController extends GetxController {
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
+      isLoading.value = true;
 
-      Get.offAll(() => const Dashboard(Screen));
+      Get.offAll(() => const Dashboard_screen());
     } else {
       Get.snackbar(
         "Error",

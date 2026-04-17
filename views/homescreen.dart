@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
-import 'dashboard.dart';
+import 'Dashboard_screen.dart';
 import 'profile.dart';
 import 'calendar_page.dart';
 import 'settings.dart';

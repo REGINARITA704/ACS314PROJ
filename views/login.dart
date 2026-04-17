@@ -2,17 +2,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get_x/get.dart';
 import 'package:http/http.dart' as http;
-import '../controller/logincontroller.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
-
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final LoginController loginController = Get.put(LoginController());
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool passwordVisible = false;
