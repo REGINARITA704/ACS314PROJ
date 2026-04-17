@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:get_x/get.dart';
+import 'package:get/get.dart'; // ✅ Fixed: was get_x
 import 'package:http/http.dart' as http;
+import 'homescreen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -53,8 +54,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 8),
-              //Obx(
-              //() =>
               TextField(
                 controller: passwordController,
                 obscureText: !passwordVisible,
@@ -73,54 +72,72 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              // ),
               const SizedBox(height: 30),
-              // Replaced GestureDetector + Container with ElevatedButton for better feedback
               ElevatedButton(
                 onPressed: () async {
-                  Get.offAllNamed('/homescreen');
+                  String username = usernameController.text.trim();
+                  String password = passwordController.text.trim();
 
-                  print(
-                    "Login button pressed",
-                  ); // Debug: Check console for this
-                  usernameController.text.trim();
-                  passwordController.text;
-
-                  final response = await http.get(
-                    Uri.parse(
-                      "http://localhost/todo_api/login.php?email=${usernameController.text.trim()}&password=${passwordController.text}",
-                    ),
-                  );
-                  if (response.statusCode == 200) {
-                    var data = jsonDecode(response.body);
-                    if (data['success'] == 1) {
-                      //Get.snackbar("Login Successful", "Welcome back!");
-                      Get.toNamed("/homescreen");
-                    } else {
-                      Get.snackbar("Login Failed", "Invalid credentials.");
-                    }
-                  } else {
+                  if (username.isEmpty || password.isEmpty) {
                     Get.snackbar(
-                      "Login Failed",
-                      "SERVER ERROR: ${response.statusCode}",
+                      "Error",
+                      "Please fill in all fields",
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.red,
+                      colorText: Colors.white,
                     );
+                    return;
                   }
 
-                  //print(response.body);
+                  try {
+                    final response = await http.get(
+                      Uri.parse(
+                        "http://localhost/todo_api/login.php?email=$username&password=$password",
+                      ),
+                    );
+                    if (response.statusCode == 200) {
+                      var data = jsonDecode(response.body);
+                      if (data['success'] == 1) {
+                        // ✅ Go to HomeScreen (has bottom nav bar with dashboard)
+                        Get.offAll(() => const HomeScreen());
+                      } else {
+                        Get.snackbar(
+                          "Login Failed",
+                          "Invalid credentials.",
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white,
+                        );
+                      }
+                    } else {
+                      Get.snackbar(
+                        "Error",
+                        "Server error: ${response.statusCode}",
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.red,
+                        colorText: Colors.white,
+                      );
+                    }
+                  } catch (e) {
+                    Get.snackbar(
+                      "Error",
+                      "Could not connect to server.",
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.red,
+                      colorText: Colors.white,
+                    );
+                  }
                 },
-
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.amber,
-                  minimumSize: const Size(double.infinity, 50), // Full width
+                  minimumSize: const Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
                 child: const Text(
                   "Login",
-                  style: TextStyle(
-                    color: Colors.black,
-                  ), // Changed to visible color
+                  style: TextStyle(color: Colors.black),
                 ),
               ),
               const SizedBox(height: 16),

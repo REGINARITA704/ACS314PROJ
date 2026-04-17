@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'dart:convert';
+import '../views/homescreen.dart';
 
 class SignupController extends GetxController {
   final usernameController = TextEditingController();
@@ -14,16 +14,15 @@ class SignupController extends GetxController {
     String password = passwordController.text.trim();
 
     if (name.isNotEmpty && email.isNotEmpty && password.isNotEmpty) {
+      isLoading.value = true;
       Get.snackbar(
         "Success",
-        "Account created for $name",
+        "Account created for $name!",
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
-      isLoading.value = true;
-
-      Get.offAll(() => const Dashboard_screen());
+      Get.offAll(() => const HomeScreen()); // ✅
     } else {
       Get.snackbar(
         "Error",

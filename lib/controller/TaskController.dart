@@ -1,43 +1,45 @@
+import 'package:flutter_application_1/models/taskmodel.dart';
 import 'package:get/get.dart';
-
-class Task {
-  String title;
-
-  RxBool isDone;
-
-  Task({required this.title, bool done = false}) : isDone = done.obs;
-
-  Null get isCompleted => null;
-
-  Null get time => null;
-}
+import 'package:flutter/material.dart';
 
 class TaskController extends GetxController {
-  var tasks = <Task>[].obs;
-  var totalAddedEver = 0.obs;
-  var totalCompletedEver = 0.obs;
+  final RxList<Task> _tasks = <Task>[].obs;
 
-  int get pendingTasksCount => tasks.where((task) => !task.isDone.value).length;
-  int get currentCompletedCount =>
-      tasks.where((task) => task.isDone.value).length;
+  List<Task> get allTasks => _tasks;
+  List<Task> get pendingTasks => _tasks.where((t) => !t.isCompleted).toList();
+  List<Task> get completedTasks => _tasks.where((t) => t.isCompleted).toList();
 
-  Object? get pendingTasks => null;
+  void addTask(String title, {DateTime? dueDate}) {
+    _tasks.add(Task(title: title, dueDate: dueDate));
+  }
 
-  void addTask(String title, String s) {
-    tasks.add(Task(title: title));
-    totalAddedEver.value++;
+  void toggleTaskStatus(int index) {
+    _tasks[index].isCompleted = !_tasks[index].isCompleted;
+    _tasks.refresh();
   }
 
   void toggleTask(Task task) {
-    task.isDone.value = !task.isDone.value;
-    if (task.isDone.value) {
-      totalCompletedEver.value++;
-    } else {
-      totalCompletedEver.value--;
-    }
+    task.isCompleted = !task.isCompleted;
+    _tasks.refresh();
   }
 
   void deleteTask(int index) {
-    tasks.removeAt(index);
+    _tasks.removeAt(index);
+  }
+
+  void clearAllTasks() {
+    _tasks.clear();
+  }
+
+  List<Task> getTasksForDate(DateTime? selectedDay) {
+    if (selectedDay == null) return [];
+
+    return _tasks.where((task) {
+      if (task.dueDate == null) return false;
+
+      return task.dueDate!.year == selectedDay.year &&
+          task.dueDate!.month == selectedDay.month &&
+          task.dueDate!.day == selectedDay.day;
+    }).toList();
   }
 }

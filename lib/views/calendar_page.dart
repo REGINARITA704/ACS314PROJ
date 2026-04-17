@@ -3,8 +3,6 @@ import 'package:flutter_application_1/controller/TaskController.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:get/get.dart';
 
-
-
 class MovingCalendar extends StatefulWidget {
   const MovingCalendar({super.key});
 
@@ -34,10 +32,12 @@ class _MovingCalendarState extends State<MovingCalendar> {
             lastDay: DateTime.utc(2030, 12, 31),
             focusedDay: _focusedDay,
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-            onDaySelected: (sel, foc) => setState(() {
-              _selectedDay = sel;
-              _focusedDay = foc;
-            }),
+            onDaySelected: (selectedDay, focusedDay) {
+              setState(() {
+                _selectedDay = selectedDay;
+                _focusedDay = focusedDay;
+              });
+            },
             calendarStyle: const CalendarStyle(
               selectedDecoration: BoxDecoration(
                 color: Color(0xFF9B5DE5),
@@ -54,7 +54,7 @@ class _MovingCalendarState extends State<MovingCalendar> {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                "Pending Tasks",
+                "Tasks for Selected Day",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -65,22 +65,57 @@ class _MovingCalendarState extends State<MovingCalendar> {
           ),
           Expanded(
             child: Obx(() {
-              var pending = taskController.pendingTasks;
-                  
+              if (_selectedDay == null) {
+                return const Center(
+                  child: Text(
+                    "Tap a day to see tasks",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                );
+              }
+
+              final List tasks = taskController.getTasksForDate(_selectedDay!);
+
+              if (tasks.isEmpty) {
+                return const Center(
+                  child: Text(
+                    "No tasks for this day",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                );
+              }
+
               return ListView.builder(
-                itemCount: pending?.length,
-                itemBuilder: (context, index) => ListTile(
-                  leading: const Icon(
-                    Icons.circle,
-                    color: Color(0xFFFF99C8),
-                    size: 12,
-                  ),
-                  title: Text(
-                    pending [int index].title,
-                    style: const TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                 
-                ),
+                itemCount: tasks.length,
+                itemBuilder: (context, index) {
+                  final task = tasks[index];
+                  return ListTile(
+                    leading: const Icon(
+                      Icons.circle,
+                      color: Color(0xFFFF99C8),
+                      size: 12,
+                    ),
+                    title: Obx(
+                      () => Text(
+                        task.title,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          decoration: task.isDone.value
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
+                          color: task.isDone.value ? Colors.grey : Colors.black,
+                        ),
+                      ),
+                    ),
+                    trailing: Obx(
+                      () => Checkbox(
+                        activeColor: const Color(0xFF9B5DE5),
+                        value: task.isDone.value,
+                        onChanged: (_) => taskController.toggleTask(task),
+                      ),
+                    ),
+                  );
+                },
               );
             }),
           ),
@@ -90,12 +125,13 @@ class _MovingCalendarState extends State<MovingCalendar> {
   }
 
   void _showAddDialog(BuildContext context) {
-    TextEditingController c = TextEditingController();
+    final TextEditingController c = TextEditingController();
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text("New Future Task"),
+        title: const Text("New Task"),
         content: TextField(
           controller: c,
           decoration: const InputDecoration(hintText: "What needs to be done?"),
@@ -107,8 +143,10 @@ class _MovingCalendarState extends State<MovingCalendar> {
               backgroundColor: const Color(0xFF9B5DE5),
             ),
             onPressed: () {
-              taskController.addTask(c.text, "Scheduled");
-              Get.back();
+              if (c.text.trim().isNotEmpty && _selectedDay != null) {
+                taskController.addTask(c.text.trim(), dueDate: _selectedDay!);
+                Get.back();
+              }
             },
             child: const Text("Add", style: TextStyle(color: Colors.white)),
           ),
@@ -117,9 +155,3 @@ class _MovingCalendarState extends State<MovingCalendar> {
     );
   }
 }
-
-extension on Object? {
-  int? get length => null;
-}
-
-
