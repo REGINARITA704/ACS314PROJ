@@ -1,45 +1,48 @@
-import 'package:flutter_application_1/models/taskmodel.dart';
 import 'package:get/get.dart';
-import 'package:flutter/material.dart';
+
+class Task {
+  final String title;
+  final DateTime? dueDate;
+  bool isCompleted;
+
+  Task({required this.title, this.dueDate, this.isCompleted = false});
+}
 
 class TaskController extends GetxController {
-  final RxList<Task> _tasks = <Task>[].obs;
-
-  List<Task> get allTasks => _tasks;
-  List<Task> get pendingTasks => _tasks.where((t) => !t.isCompleted).toList();
-  List<Task> get completedTasks => _tasks.where((t) => t.isCompleted).toList();
+  final tasks = <Task>[].obs;
 
   void addTask(String title, {DateTime? dueDate}) {
-    _tasks.add(Task(title: title, dueDate: dueDate));
+    tasks.add(Task(title: title, dueDate: dueDate));
   }
 
-  void toggleTaskStatus(int index) {
-    _tasks[index].isCompleted = !_tasks[index].isCompleted;
-    _tasks.refresh();
-  }
-
-  void toggleTask(Task task) {
+  void toggleTaskStatus(Task task) {
     task.isCompleted = !task.isCompleted;
-    _tasks.refresh();
+    tasks.refresh();
+  }
+
+  // Same as toggleTaskStatus — used by calendar
+  void toggleTaskStatusByObject(Task task) {
+    task.isCompleted = !task.isCompleted;
+    tasks.refresh();
   }
 
   void deleteTask(int index) {
-    _tasks.removeAt(index);
+    tasks.removeAt(index);
   }
 
   void clearAllTasks() {
-    _tasks.clear();
+    tasks.clear();
   }
 
-  List<Task> getTasksForDate(DateTime? selectedDay) {
-    if (selectedDay == null) return [];
-
-    return _tasks.where((task) {
-      if (task.dueDate == null) return false;
-
-      return task.dueDate!.year == selectedDay.year &&
-          task.dueDate!.month == selectedDay.month &&
-          task.dueDate!.day == selectedDay.day;
-    }).toList();
+  List<Task> getTasksForDate(DateTime date) {
+    return tasks
+        .where(
+          (t) =>
+              t.dueDate != null &&
+              t.dueDate!.year == date.year &&
+              t.dueDate!.month == date.month &&
+              t.dueDate!.day == date.day,
+        )
+        .toList();
   }
 }

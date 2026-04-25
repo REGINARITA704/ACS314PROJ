@@ -12,7 +12,8 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final ThemeController themeController = Get.find();
-  final TaskController taskController = Get.find();
+  final TaskController taskController = Get.find<TaskController>();
+  
 
   bool notificationsEnabled = true;
   bool isEditing = false;
@@ -28,9 +29,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
-          "Settings",
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          "Settings".tr,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -41,7 +42,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               isEditing ? Icons.check_circle : Icons.edit_note,
               size: 20,
             ),
-            label: Text(isEditing ? "Save" : "Edit"),
+            label: Text(isEditing ? "Save".tr : "Edit".tr),
           ),
         ],
       ),
@@ -50,23 +51,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionLabel("Profile"),
-            _editableTile(Icons.person_outline, "Username", usernameController),
-            _editableTile(Icons.email_outlined, "Email", emailController),
+            _sectionLabel("Profile".tr),
+            _editableTile(
+              Icons.person_outline,
+              "Username".tr,
+              usernameController,
+            ),
+            _editableTile(Icons.email_outlined, "Email".tr, emailController),
             _passwordTile(),
 
             const SizedBox(height: 24),
 
-            _sectionLabel("Appearance"),
+            _sectionLabel("Appearance".tr),
             Obx(
               () => _switchTile(
                 icon: themeController.isDark
                     ? Icons.dark_mode
                     : Icons.light_mode,
-                title: "Dark Mode",
+                title: "Dark Mode".tr,
                 subtitle: themeController.isDark
-                    ? "Dark theme is on"
-                    : "Light theme is on",
+                    ? "Dark theme is on".tr
+                    : "Light theme is on".tr,
                 value: themeController.isDark,
                 onChanged: (_) => themeController.toggleTheme(),
                 activeColor: const Color(0xFF546E7A),
@@ -75,13 +80,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             const SizedBox(height: 24),
 
-            _sectionLabel("Notifications"),
+            _sectionLabel("Notifications".tr),
             _switchTile(
               icon: Icons.notifications_outlined,
-              title: "Push Notifications",
+              title: "Push Notifications".tr,
               subtitle: notificationsEnabled
-                  ? "You'll receive task reminders"
-                  : "Notifications are off",
+                  ? "You'll receive task reminders".tr
+                  : "Notifications are off".tr,
               value: notificationsEnabled,
               onChanged: (v) => setState(() => notificationsEnabled = v),
               activeColor: const Color(0xFF22C55E),
@@ -89,21 +94,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             const SizedBox(height: 24),
 
-            _sectionLabel("Preferences"),
+            _sectionLabel("Preferences".tr),
             _languageTile(),
             _actionTile(
               icon: Icons.delete_sweep_outlined,
-              title: "Clear All Tasks",
-              subtitle: "Remove all tasks permanently",
+              title: "Clear All Tasks".tr,
+              subtitle: "Remove all tasks permanently".tr,
               color: Colors.redAccent,
               onTap: () => _confirmClearTasks(context),
             ),
 
             const SizedBox(height: 24),
 
-            _sectionLabel("About"),
-            _infoTile(Icons.info_outline, "App Version", "1.0.0"),
-            _infoTile(Icons.code, "Built with", "Flutter + GetX"),
+            _sectionLabel("About".tr),
+            _infoTile(Icons.info_outline, "App Version".tr, "1.0.0"),
+            _infoTile(Icons.code, "Built with".tr, "Flutter + GetX"),
           ],
         ),
       ),
@@ -193,13 +198,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
-          TextButton(
-            onPressed: () {},
-            child: const Text(
-              "Change",
-              style: TextStyle(color: Color(0xFF546E7A)),
-            ),
-          ),
         ],
       ),
     );
@@ -270,9 +268,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             items: [
               "English",
               "Swahili",
-              "French",
             ].map((l) => DropdownMenuItem(value: l, child: Text(l))).toList(),
-            onChanged: (v) => setState(() => selectedLanguage = v!),
+            onChanged: (v) {
+              setState(() {
+                selectedLanguage = v!;
+              });
+
+              if (v == "English") {
+                Get.updateLocale(const Locale('en', 'US'));
+              } else if (v == "Swahili") {
+                Get.updateLocale(const Locale('sw', 'KE'));
+              }
+            },
           ),
         ],
       ),
@@ -357,21 +364,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Clear All Tasks"),
-        content: const Text(
-          "Are you sure you want to delete all tasks? This cannot be undone.",
+        title: Text("Clear All Tasks".tr),
+        content: Text(
+          "Are you sure you want to delete all tasks? This cannot be undone."
+              .tr,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
+            child: Text("Cancel".tr),
           ),
           TextButton(
             onPressed: () {
               taskController.clearAllTasks();
               Navigator.pop(context);
             },
-            child: const Text("Clear", style: TextStyle(color: Colors.red)),
+            child: Text("Clear".tr, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),

@@ -7,20 +7,22 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TaskController taskController = Get.find();
+    final TaskController taskController = Get.find<TaskController>();
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       body: Obx(() {
-        final total = taskController.allTasks.length;
-        final active = taskController.pendingTasks.length;
-        final done = taskController.completedTasks.length;
-        final progress = total == 0 ? 0.0 : done / total;
+        final allTasksList = taskController.tasks;
+        final total = allTasksList.length;
+        final active = allTasksList.where((t) => !t.isCompleted).length;
+        final done = allTasksList.where((t) => t.isCompleted).length;
+
+        // ✅ Calculate progress directly here
+        final progressValue = total == 0 ? 0.0 : done / total;
 
         return CustomScrollView(
           slivers: [
-            // ── Header ──────────────────────────────────────────
             SliverToBoxAdapter(
               child: Container(
                 padding: const EdgeInsets.only(
@@ -43,24 +45,12 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    // Avatar
-                    Container(
-                      width: 72,
-                      height: 72,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.2),
-                        border: Border.all(color: Colors.white38, width: 2),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          "TM",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                    const CircleAvatar(
+                      radius: 36,
+                      backgroundColor: Colors.white24,
+                      child: Text(
+                        "TM",
+                        style: TextStyle(color: Colors.white, fontSize: 24),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -70,82 +60,46 @@ class ProfileScreen extends StatelessWidget {
                         color: Colors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "$total tasks total",
-                      style: const TextStyle(
-                        color: Colors.white60,
-                        fontSize: 13,
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // Progress bar
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              "Overall Progress",
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                              ),
-                            ),
-                            Text(
-                              "${(progress * 100).toStringAsFixed(0)}%",
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: LinearProgressIndicator(
-                            value: progress,
-                            minHeight: 8,
-                            backgroundColor: Colors.white24,
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color(0xFFB2EBF2),
-                            ),
-                          ),
-                        ),
-                      ],
+                    LinearProgressIndicator(
+                      value: progressValue,
+                      backgroundColor: Colors.white24,
+                      color: Colors.cyanAccent,
+                      minHeight: 8,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "${(progressValue * 100).toInt()}% Done",
+                      style: const TextStyle(color: Colors.white70),
                     ),
                   ],
                 ),
               ),
             ),
 
-            // ── Stat Cards ──────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
                 child: Row(
                   children: [
                     _StatCard(
-                      label: "Total",
+                      label: "Total".tr,
                       value: total,
                       icon: Icons.task_alt,
                       color: const Color(0xFF546E7A),
                     ),
                     const SizedBox(width: 10),
                     _StatCard(
-                      label: "Active",
+                      label: "Active".tr,
                       value: active,
                       icon: Icons.pending_actions,
                       color: const Color(0xFFF59E0B),
                     ),
                     const SizedBox(width: 10),
                     _StatCard(
-                      label: "Done",
+                      label: "Done".tr,
                       value: done,
                       icon: Icons.check_circle_outline,
                       color: const Color(0xFF22C55E),
@@ -155,134 +109,59 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
 
-            // ── Task Overview Header ─────────────────────────────
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Task Overview",
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      "$total tasks",
-                      style: TextStyle(fontSize: 13, color: Colors.grey[500]),
-                    ),
-                  ],
+                padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
+                child: Text(
+                  "Recent Tasks",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
 
-            // ── Task List ────────────────────────────────────────
-            taskController.allTasks.isEmpty
-                ? SliverToBoxAdapter(
+            allTasksList.isEmpty
+                ? const SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 40),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.inbox_outlined,
-                            size: 52,
-                            color: Colors.grey[300],
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            "No tasks yet!",
-                            style: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: 15,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            "Add a task to get started",
-                            style: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
+                      padding: EdgeInsets.all(40),
+                      child: Center(child: Text("No tasks yet")),
                     ),
                   )
                 : SliverList(
                     delegate: SliverChildBuilderDelegate((context, index) {
-                      final task = taskController.allTasks[index];
-                      return Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: theme.cardColor,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
+                      final task = allTasksList[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
+                        ),
+                        child: ListTile(
+                          leading: Icon(
+                            task.isCompleted
+                                ? Icons.check_circle
+                                : Icons.circle_outlined,
+                            color: task.isCompleted
+                                ? Colors.green
+                                : Colors.grey,
                           ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 6,
+                          title: Text(
+                            task.title,
+                            style: TextStyle(
+                              decoration: task.isCompleted
+                                  ? TextDecoration.lineThrough
+                                  : null,
                             ),
-                            leading: GestureDetector(
-                              onTap: () =>
-                                  taskController.toggleTaskStatus(index),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                width: 28,
-                                height: 28,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: task.isCompleted
-                                      ? const Color(0xFF22C55E)
-                                      : Colors.transparent,
-                                  border: Border.all(
-                                    color: task.isCompleted
-                                        ? const Color(0xFF22C55E)
-                                        : Colors.grey.shade400,
-                                    width: 2,
-                                  ),
-                                ),
-                                child: task.isCompleted
-                                    ? const Icon(
-                                        Icons.check,
-                                        size: 16,
-                                        color: Colors.white,
-                                      )
-                                    : null,
-                              ),
-                            ),
-                            title: Text(
-                              task.title,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                                decoration: task.isCompleted
-                                    ? TextDecoration.lineThrough
-                                    : null,
-                                color: task.isCompleted ? Colors.grey : null,
-                              ),
-                            ),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete_outline, size: 20),
-                              color: Colors.redAccent,
-                              onPressed: () => taskController.deleteTask(index),
-                            ),
+                          ),
+                          // ✅ Show due date instead of description (which doesn't exist)
+                          subtitle: Text(
+                            task.dueDate != null
+                                ? task.dueDate.toString().split(' ')[0]
+                                : "No due date",
                           ),
                         ),
                       );
-                    }, childCount: taskController.allTasks.length),
+                    }, childCount: total),
                   ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+            const SliverPadding(padding: EdgeInsets.only(bottom: 30)),
           ],
         );
       }),
@@ -290,7 +169,6 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-// ── Stat Card Widget ─────────────────────────────────────────────
 class _StatCard extends StatelessWidget {
   final String label;
   final int value;
@@ -308,30 +186,29 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
           ],
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 26),
+            Icon(icon, color: color),
             const SizedBox(height: 8),
             Text(
               value.toString(),
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 2),
             Text(
               label,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
             ),
           ],
         ),

@@ -22,13 +22,13 @@ class SignupController extends GetxController {
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
-      Get.offAll(() => const HomeScreen()); // ✅
+      Get.offAll(() => const HomeScreen());
     } else {
       Get.snackbar(
         "Error",
         "Please fill in all fields",
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
+        backgroundColor: const Color.fromARGB(255, 26, 23, 23),
         colorText: Colors.white,
       );
     }

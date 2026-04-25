@@ -29,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: _pages[_pageIndex],
       bottomNavigationBar: CurvedNavigationBar(
         backgroundColor: Colors.white,
-        color: Colors.red,
+        color: Colors.black,
         items: const <Widget>[
           Icon(Icons.dashboard, size: 30, color: Colors.white),
           Icon(Icons.calendar_month, size: 30, color: Colors.white),

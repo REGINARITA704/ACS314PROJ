@@ -1,135 +1,89 @@
-import 'dart:convert'; // Required for jsonEncode/Decode
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get/get.dart';
+import 'package:flutter_application_1/controller/TaskController.dart';
+import 'package:flutter_application_1/views/addTask_screen.dart';
 
-class DashboardScreen extends StatefulWidget {
+class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
-}
-
-class _DashboardScreenState extends State<DashboardScreen> {
-  List<Map<String, String>> tasks = [];
-  final TextEditingController titleController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _loadTasks(); // Load tasks as soon as the app opens
-  }
-
-  Future<void> _loadTasks() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? tasksString = prefs.getString('saved_tasks');
-    if (tasksString != null) {
-      setState(() {
-        List<dynamic> decodedList = jsonDecode(tasksString);
-        tasks = decodedList
-            .map((item) => Map<String, String>.from(item))
-            .toList();
-      });
-    }
-  }
-
-  Future<void> _saveTasks() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String encodedData = jsonEncode(tasks); // Convert list to string
-    await prefs.setString('saved_tasks', encodedData);
-  }
-
-  void _addTask() {
-    if (titleController.text.isNotEmpty) {
-      setState(() {
-        tasks.add({
-          'title': titleController.text,
-          'description': descriptionController.text,
-        });
-      });
-      _saveTasks(); // Save after adding
-      titleController.clear();
-      descriptionController.clear();
-      Navigator.of(context).pop();
-    }
-  }
-
-  void _deleteTask(int index) {
-    setState(() {
-      tasks.removeAt(index);
-    });
-    _saveTasks(); // Save after deleting
-  }
-
-  // ... (Keep your _showAddTaskDialog function the same as your original)
-  void _showAddTaskDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Add New Task'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(labelText: 'Task Title'),
-              ),
-              TextField(
-                controller: descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
-                maxLines: 2,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(onPressed: _addTask, child: const Text('Add Task')),
-          ],
-        );
-      },
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final TaskController controller = Get.find<TaskController>();
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Tasks'),
-        backgroundColor: Colors.red,
-        automaticallyImplyLeading: false, // Prevents going back to Sign Up
+      backgroundColor: Colors.white,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Get.to(() => AddTaskScreen());
+        },
+        backgroundColor: const Color(0xFF8BA9A9),
+        elevation: 6,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        icon: const Icon(Icons.add, size: 26),
+        label: const Text(
+          "Add Task",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
       ),
-      body: tasks.isEmpty
-          ? const Center(child: Text('No tasks yet. Add one!'))
-          : ListView.builder(
-              itemCount: tasks.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+      body: SafeArea(
+        child: Obx(() {
+          if (controller.tasks.isEmpty) {
+            return const Center(
+              child: Text(
+                "No tasks yet.\nTap + to add tasks",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+            );
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.only(bottom: 80),
+            itemCount: controller.tasks.length,
+            itemBuilder: (context, index) {
+              final task = controller.tasks[index];
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
                   ),
-                  child: ListTile(
-                    title: Text(
-                      tasks[index]['title']!,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(tasks[index]['description']!),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _deleteTask(index),
+                  leading: Checkbox(
+                    value: task.isCompleted,
+                    activeColor: const Color(0xFF8BA9A9),
+                    onChanged: (val) => controller.toggleTaskStatus(task),
+                  ),
+                  title: Text(
+                    task.title,
+                    style: TextStyle(
+                      decoration: task.isCompleted
+                          ? TextDecoration.lineThrough
+                          : null,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
                     ),
                   ),
-                );
-              },
-            ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddTaskDialog,
-        backgroundColor: Colors.red,
-        child: const Icon(Icons.add, color: Colors.white),
+                  subtitle: Text(
+                    task.dueDate != null
+                        ? task.dueDate.toString().split(' ')[0]
+                        : "No Date",
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.redAccent,
+                    ),
+                    onPressed: () => controller.deleteTask(index),
+                  ),
+                ),
+              );
+            },
+          );
+        }),
       ),
     );
   }
